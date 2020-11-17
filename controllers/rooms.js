@@ -29,7 +29,34 @@ exports.addMessage = (req, res) => {
           unread: false,
         },
       },
+    },
+    { new: true }
+  ).exec((err, room) => {
+    if (err || !room) {
+      return res.status(400).json({
+        error: "Update problem, pleas try again",
+      });
     }
+    console.log("Record updated successfully");
+    console.log(room);
+
+    res.json(room);
+  });
+};
+exports.deleteMessage = (req, res) => {
+  const roomId = req.params.roomId;
+  const messageId = req.params.messageId;
+
+  Rooms.findOneAndUpdate(
+    { _id: roomId},
+    {
+      $pull: {
+        messages: {
+          _id: messageId,
+        },
+      },
+    },
+    { new: true }
   ).exec((err, room) => {
     if (err || !room) {
       return res.status(400).json({
