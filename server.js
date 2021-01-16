@@ -29,6 +29,11 @@ const { body } = require("express-validator");
 // app middleware
 app.use(morgan("dev"));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.post('/post-test', (req, res) => {
+  console.log('Got body:', req.body);
+  res.sendStatus(200);
+});
 
 //app.use(cors()); // allows all origins
 if ((process.env.NODE_ENV = "development")) {

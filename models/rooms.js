@@ -6,14 +6,18 @@ const roomsScheama = new mongoose.Schema(
     title: String,
     users: [{
         id: String,
-        title: String
+        name: String
     }],
     messages: [{
         text: String,
         name: String,
         timestamp: Date,
         id: String,
-        unread: Boolean
+        unread: Boolean,
+        read: [{
+          name: String,
+          unread: Boolean,
+        }]
     }],
   },
   { timestamps: true }
