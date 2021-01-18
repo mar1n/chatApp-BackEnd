@@ -37,14 +37,16 @@ exports.addRoom = (req, res) => {
 
 exports.addMessage = (req, res) => {
   const userId = req.params.id;
-  const name = req.params.name;
+  const loginUserName = req.params.name;
   const message = req.params.message;
 
   Rooms.find({ _id: userId }, { users: 1, _id: 0 })
     .lean()
     .then((users) => {
-      console.log("addMessage users", users);
-      const unReadUsers = users[0].users.map((name) => ({ unread: false, ...name }));
+      const unReadUsers = users[0].users.map((name) => {
+            return name.name === loginUserName ? ({ unread: true, ...name}) : ({ unread: false, ...name });
+          }
+        );
 
       return Rooms.findOneAndUpdate(
         { _id: userId },
@@ -52,7 +54,7 @@ exports.addMessage = (req, res) => {
           $push: {
             messages: {
               text: message,
-              name: name,
+              name: loginUserName,
               timestamp: new Date(),
               id: 2,
               unread: false,
@@ -106,6 +108,13 @@ exports.deleteMessage = (req, res) => {
   });
 };
 
+
+//READALLMessage MONGO QUERY
+// db.getCollection('rooms').findOneAndUpdate(
+//   { _id: ObjectId("5fff323129a4d305c4c4f588") },
+//   { $set: { "messages.$[].read.$[elem].unread": true } },
+//   { arrayFilters: [{ "elem.name": 'Szymon Dawidowicz' }], multi: true}
+//   )
 exports.readAllMessage = (req, res) => {
   const roomId = req.params.roomId;
   //const roomId = '5fff323129a4d305c4c4f588';
@@ -127,6 +136,7 @@ exports.readAllMessage = (req, res) => {
     res.json(room);
   });
 };
+
 // JUST FOR TESTS
 exports.readAllUsers = (req, res) => {
   Rooms.find({ _id: "600300f7b56d1446f49a59b6" }, { users: 1, _id: 0 })
