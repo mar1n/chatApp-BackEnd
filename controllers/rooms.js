@@ -108,22 +108,40 @@ exports.deleteMessage = (req, res) => {
   });
 };
 
-
-//READALLMessage MONGO QUERY
-// db.getCollection('rooms').findOneAndUpdate(
-//   { _id: ObjectId("5fff323129a4d305c4c4f588") },
-//   { $set: { "messages.$[].read.$[elem].unread": true } },
-//   { arrayFilters: [{ "elem.name": 'Szymon Dawidowicz' }], multi: true}
-//   )
 exports.readAllMessage = (req, res) => {
   const roomId = req.params.roomId;
   //const roomId = '5fff323129a4d305c4c4f588';
+  console.log('roomId', roomId);
   const name = req.params.name;
-  //const name = 'Szymon Dawidowicz';
+  console.log('name', name);
+  //const name = 'Cristiano Ronaldo';
+  // Rooms.findOneAndUpdate(
+  //   { _id: roomId },
+  //   { $set: { "messages.$[].read.$[elem].unread": true } },
+  //   { arrayFilters: [{ "elem.name": name }], multi: true, new: true }
+  // ).exec((err, room) => {
+  //   if (err || !room) {
+  //     return res.status(400).json({
+  //       error: "Update problem, pleas try again",
+  //     });
+  //   }
+  //   console.log("Record updated successfully");
+  //   console.log(room);
+
+  //   res.json(room);
+  // });
+};
+
+// JUST FOR TESTS
+exports.readAllUsers = (req, res) => {
+  const roomId = req.params.roomId;
+  //const roomId = '5fff323129a4d305c4c4f588';
+  const name = req.params.name;
+  //const name = 'Cristiano Ronaldo';
   Rooms.findOneAndUpdate(
-    { _id: roomId, "messages.name": name },
-    { $set: { "messages.$[elem].unread": false } },
-    { arrayFilters: [{ "elem.name": { $ne: name } }], multi: true, new: true }
+    { _id: roomId },
+    { $set: { "messages.$[].read.$[elem].unread": true } },
+    { arrayFilters: [{ "elem.name": name }], multi: true, new: true }
   ).exec((err, room) => {
     if (err || !room) {
       return res.status(400).json({
@@ -135,23 +153,4 @@ exports.readAllMessage = (req, res) => {
 
     res.json(room);
   });
-};
-
-// JUST FOR TESTS
-exports.readAllUsers = (req, res) => {
-  Rooms.find({ _id: "600300f7b56d1446f49a59b6" }, { users: 1, _id: 0 })
-    .then((room) => {
-      if (!room) {
-        return res.status(400).json({
-          error: "Update problem, pleas try again",
-        });
-      }
-      console.log("Record updated successfully");
-      console.log(room);
-
-      res.json(room);
-    })
-    .catch((err) => {
-      res.status(500).json({ error: err });
-    });
 };
