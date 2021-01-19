@@ -17,11 +17,13 @@ exports.read = (req, res) => {
 exports.addRoom = (req, res) => {
   console.log("address object", req.query.users);
   console.log("params", req.param("users"));
+  console.log("newThreadName", req.param("newThreadName"));
   console.log("body", req.body);
 
+  const newThreadName = req.param("newThreadName");
   const users = req.query.users;
   const addRoom = new Rooms({
-    title: "Angry",
+    title: newThreadName,
     users,
   });
   addRoom.save(function (err, newRoom) {
@@ -56,8 +58,7 @@ exports.addMessage = (req, res) => {
               text: message,
               name: loginUserName,
               timestamp: new Date(),
-              id: 2,
-              unread: false,
+ 
               read: unReadUsers,
             },
           },
@@ -111,26 +112,46 @@ exports.deleteMessage = (req, res) => {
 exports.readAllMessage = (req, res) => {
   const roomId = req.params.roomId;
   //const roomId = '5fff323129a4d305c4c4f588';
-  console.log('roomId', roomId);
   const name = req.params.name;
-  console.log('name', name);
   //const name = 'Cristiano Ronaldo';
-  // Rooms.findOneAndUpdate(
-  //   { _id: roomId },
-  //   { $set: { "messages.$[].read.$[elem].unread": true } },
-  //   { arrayFilters: [{ "elem.name": name }], multi: true, new: true }
-  // ).exec((err, room) => {
-  //   if (err || !room) {
-  //     return res.status(400).json({
-  //       error: "Update problem, pleas try again",
-  //     });
-  //   }
-  //   console.log("Record updated successfully");
-  //   console.log(room);
+  Rooms.findOneAndUpdate(
+    { _id: roomId },
+    { $set: { "messages.$[].read.$[elem].unread": true } },
+    { arrayFilters: [{ "elem.name": name }], multi: true, new: true }
+  ).exec((err, room) => {
+    if (err || !room) {
+      return res.status(400).json({
+        error: "Update problem, pleas try again",
+      });
+    }
+    console.log("Record updated successfully");
+    console.log(room);
 
-  //   res.json(room);
-  // });
+    res.json(room);
+  });
 };
+
+exports.readMessages = (req, res) => {
+  const roomId = req.params.roomId;
+  //const roomId = '5fff323129a4d305c4c4f588';
+  const name = req.params.name;
+  //const name = 'Cristiano Ronaldo';
+  Rooms.findOneAndUpdate(
+    { _id: roomId },
+    { $set: { "messages.$[].read.$[elem].unread": true } },
+    { arrayFilters: [{ "elem.name": name }], multi: true, new: true }
+  ).exec((err, room) => {
+    if (err || !room) {
+      return res.status(400).json({
+        error: "Update problem, pleas try again",
+      });
+    }
+    console.log("Record updated successfully");
+    console.log(room);
+
+    res.json(room);
+  });
+}
 
 // JUST FOR TESTS
 exports.readAllUsers = (req, res) => {
