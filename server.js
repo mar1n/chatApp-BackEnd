@@ -4,10 +4,12 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 
+
 require("dotenv").config();
 
 const app = express();
-
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 // connect to db
 mongoose
   .connect(process.env.DATABASE, {
@@ -47,6 +49,10 @@ app.use("/api", itemRoutes);
 app.use("/api", roomsRoutes);
 
 const port = process.env.PORT || 8000;
-app.listen(port, () => {
+http.listen(port, () => {
   console.log(`API is running on port ${port}`);
+});
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
 });
