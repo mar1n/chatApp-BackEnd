@@ -53,6 +53,5 @@ http.listen(port, () => {
   console.log(`API is running on port ${port}`);
 });
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
-});
+const socketApi = require("./socket")(io);
+socketApi.socketApi;

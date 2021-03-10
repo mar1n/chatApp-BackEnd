@@ -11,4 +11,4 @@ router.get('/user/readAll/:id', requireSignin, readAll);
 router.put('/user/update', requireSignin, update);
 router.put('/admin/update', requireSignin, adminMiddleware, update);
 
-module.exports = router;
+module.exports = router; 
