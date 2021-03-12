@@ -1,5 +1,5 @@
 const user = require("../models/user");
-
+const rooms = require("../models/rooms");
 module.exports = function (io) {
   module.socketApi = io.on("connection", (socket) => {
     console.log("A User connected", socket.id);
@@ -17,10 +17,49 @@ module.exports = function (io) {
         if (err) {
           console.log("**Szymon Faild ERR", err);
         } else {
-            console.log("loadUsers", result);
-            io.emit("loadUsers", result);
+          console.log("loadUsers", result);
+          io.emit("loadUsers", result);
         }
       });
+    });
+
+    socket.on("addMessage", (message) => {
+      rooms
+        .find({ _id: message.id }, { users: 1, _id: 0 })
+        .lean()
+        .then((users) => {
+          const unReadUsers = users[0].users.map((name) => {
+            return name.name === message.name
+              ? { unread: true, ...name }
+              : { unread: false, ...name };
+          });
+
+          return rooms.findOneAndUpdate(
+            { _id: message.id },
+            {
+              $push: {
+                messages: {
+                  text: message.text,
+                  name: message.name,
+                  timestamp: new Date(),
+
+                  read: unReadUsers,
+                },
+              },
+            },
+            { new: true }
+          );
+        })
+        .then((room) => {
+         
+          console.log("Szymon Add new item success!");
+          console.log(room);
+          socket.emit("messageAdded", {data: room, id: message.id, text: message.text, name: message.name});
+
+        })
+        .catch((err) => {
+          console.log("Szymon Add new item faild!", err);
+        });
     });
 
     // socket.on("initialList", (id) => {
