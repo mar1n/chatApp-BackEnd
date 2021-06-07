@@ -3,56 +3,112 @@ const morgan = require("morgan");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const http = require("http");
+const socketServer = require("socket.io");
 
+function createServer() {
+  require("dotenv").config();
+  const app = express();
 
-require("dotenv").config();
+  //import routes
+  const authRoutes = require("./routes/auth");
+  const userRoutes = require("./routes/user");
+  const itemRoutes = require("./routes/item");
+  const roomsRoutes = require("./routes/rooms");
+  const { body } = require("express-validator");
 
-const app = express();
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
-// connect to db
-mongoose
-  .connect(process.env.DATABASE, {
-    useNewUrlParser: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  })
-  .then(() => console.log("DB connected"))
-  .catch((err) => console.log("DB CONNECTION ERROR: ", err));
+  // app middleware
+  app.use(morgan("dev"));
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.post("/post-test", (req, res) => {
+    console.log("Got body:", req.body);
+    res.sendStatus(200);
+  });
 
-//import routes
-const authRoutes = require("./routes/auth");
-const userRoutes = require("./routes/user");
-const itemRoutes = require("./routes/item");
-const roomsRoutes = require("./routes/rooms");
-const { body } = require("express-validator");
+  //app.use(cors()); // allows all origins
+  if ((process.env.NODE_ENV = "development")) {
+    app.use(cors({ origin: `http://localhost:3000` }));
+  }
 
-// app middleware
-app.use(morgan("dev"));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.post('/post-test', (req, res) => {
-  console.log('Got body:', req.body);
-  res.sendStatus(200);
-});
+  // middleware
+  app.use("/api", authRoutes);
+  app.use("/api", userRoutes);
+  app.use("/api", itemRoutes);
+  app.use("/api", roomsRoutes);
 
-//app.use(cors()); // allows all origins
-if ((process.env.NODE_ENV = "development")) {
-  app.use(cors({ origin: `http://localhost:3000` }));
+  
+  var serve = http.createServer(app);
+  return serve;
+  // var io = socketServer(serve);
+  // serve.listen(port, () => {
+  //   console.log(`API is running on port ${port}`);
+  // });
+
+  // /***************************************************************************************** */
+  // /* Socket logic starts here																   */
+  // /***************************************************************************************** */
+  // const connections = [];
+  // io.on('connection', function (socket) {
+  // 	console.log("Connected to Socket!!"+ socket.id)
+  // 	connections.push(socket)
+  // 	socket.on('disconnect', function(){
+  // 		console.log('Disconnected - '+ socket.id);
+  // 	});
+
+  // 	var cursor = todolist.find({},(err,result)=>{
+  // 				if (err){
+  // 					console.log("---Gethyl GET failed!!")
+  // 				}
+  // 				else {
+  // 					socket.emit('initialList',result)
+  // 					console.log("+++Gethyl GET worked!!", result)
+  // 					console.log('Final check!');
+  // 				}
+  // 			})
+  // 	// 		.cursor()
+  // 	// cursor.on('data',(res)=> {socket.emit('initialList',res)})
+  // 	socket.on('messageSent', (message) => {
+
+  // 	})
+  // 	socket.on('addItem',(addData)=>{
+  // 		var todoItem = new todolist({
+  // 			itemId:addData.id,
+  // 			item:addData.item,
+  // 			completed: addData.completed
+  // 		})
+
+  // 		todoItem.save((err,result)=> {
+  // 			if (err) {console.log("---Gethyl ADD NEW ITEM failed!! " + err)}
+  // 			else {
+  // 				// connections.forEach((currentConnection)=>{
+  // 				// 	currentConnection.emit('itemAdded',addData)
+  // 				// })
+  // 				io.emit('itemAdded',addData)
+
+  // 				console.log({message:"+++Gethyl ADD NEW ITEM worked!!"})
+  // 			}
+  // 		})
+  // 	})
+
+  // 	socket.on('markItem',(markedItem)=>{
+  // 		var condition   = {itemId:markedItem.id},
+  // 			updateValue = {completed:markedItem.completed}
+
+  // 		todoModel.update(condition,updateValue,(err,result)=>{
+  // 			if (err) {console.log("---Gethyl MARK COMPLETE failed!! " + err)}
+  // 			else {
+  // 				// connections.forEach((currentConnection)=>{
+  // 				// 	currentConnection.emit('itemMarked',markedItem)
+  // 				// })
+  // 				io.emit('itemMarked',markedItem)
+
+  // 				console.log({message:"+++Gethyl MARK COMPLETE worked!!"})
+  // 			}
+  // 		})
+  // 	})
+
+  // });
 }
 
-// middleware
-app.use("/api", authRoutes);
-app.use("/api", userRoutes);
-app.use("/api", itemRoutes);
-app.use("/api", roomsRoutes);
-
-const port = process.env.PORT || 8000;
-http.listen(port, () => {
-  console.log(`API is running on port ${port}`);
-});
-
-// Web Socket API
-const socketApi = require("./socket")(io);
-socketApi.socketApi;
+module.exports = createServer;
