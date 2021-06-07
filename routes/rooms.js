@@ -6,7 +6,7 @@ const router = express.Router();
 const { requireSignin, adminMiddleware } = require('../controllers/auth');
 const { read, addMessage, deleteMessage, readAllMessage, addRoom, readAllUsers, readMessages } = require('../controllers/rooms');
 
-router.get('/user/chat/room/:id', requireSignin, read);
+router.get('/user/chat/room/:name', requireSignin, read);
 router.put('/user/chat/room/add', addRoom);
 router.put('/user/chat/room/message/:id/:name/:message',  addMessage);
 router.put('/user/chat/room/message/:roomId/:messageId',  deleteMessage);

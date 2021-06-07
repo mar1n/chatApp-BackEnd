@@ -4,21 +4,21 @@ module.exports = function (io) {
   module.socketApi = io.on("connection", (socket) => {
     console.log("A User connected", socket.id);
 
-    var cursor = user.find({}, (err, user) => {
-      if (err || !user) {
-        console.log("-*-Szymon-*- GET failed!!");
-      }
-      socket.emit("initialList", user);
-      console.log("***Szymon*** GET worked!!");
-    });
-    socket.on("listUsers", (id) => {
-      console.log("my user id", id);
-      user.find({ _id: { $ne: id } }, (err, result) => {
+    // var cursor = user.find({}, (err, user) => {
+    //   if (err || !user) {
+    //     console.log("-*-Szymon-*- GET failed!!");
+    //   }
+    //   socket.emit("initialList", user);
+    //   console.log("***Szymon*** GET worked!!");
+    // });
+    socket.on("LoadRooms", (name) => {
+      console.log("my user id", name);
+      rooms.find({ users: { $elemMatch: { name: name } } }).exec((err, room) => {
         if (err) {
           console.log("**Szymon Faild ERR", err);
         } else {
-          console.log("loadUsers", result);
-          io.emit("loadUsers", result);
+          console.log("loadUsers", room);
+          io.emit("RoomsLoaded", room);
         }
       });
     });

@@ -1,10 +1,11 @@
 const Rooms = require("../models/rooms");
 const bodyParser = require("body-parser");
+const addMessage = require("./genericFn/room/addMessage");
 
 exports.read = (req, res) => {
-  const userId = req.params.id;
+  const userName = req.params.name;
   console.log("rooms loading...");
-  Rooms.find({ users: { $elemMatch: { name: userId } } }).exec((err, room) => {
+  Rooms.find({ users: { $elemMatch: { name: userName } } }).exec((err, room) => {
     if (err || !room) {
       return res.status(400).json({
         error: "Room not found",
@@ -37,49 +38,24 @@ exports.addRoom = (req, res) => {
   });
 };
 
-exports.addMessage = (req, res) => {
+exports.addMessage = async (req, res) => {
   const userId = req.params.id;
   const loginUserName = req.params.name;
   const message = req.params.message;
-
-  Rooms.find({ _id: userId }, { users: 1, _id: 0 })
-    .lean()
-    .then((users) => {
-      const unReadUsers = users[0].users.map((name) => {
-            return name.name === loginUserName ? ({ unread: true, ...name}) : ({ unread: false, ...name });
-          }
-        );
-
-      return Rooms.findOneAndUpdate(
-        { _id: userId },
-        {
-          $push: {
-            messages: {
-              text: message,
-              name: loginUserName,
-              timestamp: new Date(),
- 
-              read: unReadUsers,
-            },
-          },
-        },
-        { new: true }
-      );
-    })
-    .then((room) => {
-      if (!room) {
-        return res.status(400).json({
-          error: "Update problem, pleas try again",
-        });
-      }
-      console.log("Record updated successfully");
-      console.log(room);
-
-      res.json(room);
-    })
-    .catch((err) => {
-      res.status(500).json({ error: err });
-    });
+  try {
+    const result = await addMessage(userId, loginUserName, message);
+    console.log("result value", result);
+    if (result.status === "200") {
+      //console.log("result 200");
+      res.status(200).json(result.room);
+    } else if (result.status === "400") {
+      //console.log("result 400");
+      res.status(400);
+    }
+  } catch (err) {
+    console.log("error:", err);
+    res.status(500).json(err);
+  }
 };
 
 exports.deleteMessage = (req, res) => {
