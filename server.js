@@ -39,7 +39,25 @@ function createServer() {
 
   
   var serve = http.createServer(app);
-  return serve;
+  const io = require("socket.io")(httpServer, {
+    cors: {
+      origin: "*",
+    },
+  });
+
+  io.on("connection", (socket) => {
+    const backEndMessage = {
+      name: "BackEnd Message",
+      message: "Hello from backEnd",
+    };
+    console.log("connect");
+    socket.emit("backEnd", backEndMessage);
+    socket.on("addMessage", (msg) => {
+      console.log("msg", msg);
+      io.emit("responseBackEnd", true);
+    });
+  });
+  return httpServer;
   // var io = socketServer(serve);
   // serve.listen(port, () => {
   //   console.log(`API is running on port ${port}`);
