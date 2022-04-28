@@ -5,10 +5,15 @@ workflows:
     jobs:
       - test
 
-jobs:
-    test:
-      docker:
-        - image: cimg/node:14.13.0
-      steps:
-        - checkout
-        - run: node --version
+jobs: 
+  test:
+    docker:
+      - image: cimg/node:14.13.0
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: Run Tests
+          command: npm run test
